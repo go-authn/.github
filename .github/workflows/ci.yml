@@ -21,7 +21,11 @@ jobs:
       - name: Check
         run: |
           set -uo pipefail
-          urls=$(grep -oE 'https?://[^)"[:space:]]+' profile/README.md | sed 's/[.,]$//' | sort -u)
+          # The character class matters: markdown wraps a bare URL in angle
+          # brackets, and an extractor that stops only at ) and " carries the
+          # closing > into the request. This check failed on its own first run
+          # for exactly that, which is the cheapest possible way to find out.
+          urls=$(grep -oE 'https?://[^)">< [:space:]]+' profile/README.md | sed 's/[.,]$//' | sort -u)
           test -n "$urls" || { echo "::error::no links found; is the README still there?"; exit 1; }
           fail=0
           while read -r u; do
