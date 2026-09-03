@@ -23,8 +23,12 @@ protocol needed to make a security key one of those answers.
 
 Everything here is pure Go with `CGO_ENABLED=0`, and nothing is
 platform-specific: a `Transport` moves 64-byte reports to and from an
-authenticator, and where those come from is somebody else's problem. The macOS
-one is [`go-macos/fido`](https://github.com/go-macos/fido).
+authenticator, and where those come from is somebody else's problem. The
+transports are [`go-macos/fido`](https://github.com/go-macos/fido) and
+[`go-gnulinux/fido`](https://github.com/go-gnulinux/fido); Windows needs none,
+because since 1903 it will not let a normal program open a FIDO device at all
+([`go-mswin/webauthn`](https://github.com/go-mswin/webauthn) goes through
+`webauthn.dll` instead).
 
 ## Repos
 
@@ -32,14 +36,17 @@ one is [`go-macos/fido`](https://github.com/go-macos/fido).
 |---|---|---|
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-fido.png" width="36"> | [`fido`](https://github.com/go-authn/fido) | The FIDO client-to-authenticator protocol: CTAPHID, `GetInfo`, `MakeCredential`, `GetAssertion`. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-mfa.png" width="36"> | [`mfa`](https://github.com/go-authn/mfa) | The policy: how many factors, of which kinds, and what to say when some refuse. |
+| | [`keyfactor`](https://github.com/go-authn/keyfactor) | The piece between the two: a security key as an `mfa.Factor`, over any transport. |
 
 ## Why it exists
 
 In pure Go, client-side, there was nothing to reuse. The reference of the field
 is Yubico's **libfido2**, written in C; its one serious Go binding wraps it
-through cgo and has not moved in ten months, and the pure-Go candidates are
-small and young. So libfido2 and the CTAP specification are read here as
-*documentation*, and the code is owned.
+through cgo. The pure-Go candidates are thinner in stars than in substance —
+`telesma-app/ctap` is 15,000 lines with 56 test files and an active week, which
+an earlier reading of this page dismissed on a star count. So libfido2 and the
+CTAP specification are read here as *documentation*, that project is read too,
+and the code is owned.
 
 Reading them first caught two faults that testing against a key would not have,
 because a short ping comes back the same either way: `CTAPHID_KEEPALIVE` is not
