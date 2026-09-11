@@ -31,7 +31,17 @@ jobs:
           while read -r u; do
             # img.shields.io renders anything asked of it and proves nothing.
             case "$u" in *img.shields.io*) continue ;; esac
-            code=$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 25 "$u" || echo 000)
+            # ⛔ Three attempts, because ONE is a flake detector rather than
+            # a link checker. github.com answered 000 -- a connection that
+            # never completed -- for a repository that exists, and 200 on each
+            # of the next three tries. A lane that fails at random is a lane
+            # people learn to ignore, which is worse than not having it.
+            code=000
+            for attempt in 1 2 3; do
+              code=$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 25 "$u" || echo 000)
+              case "$code" in 2*|3*) break ;; esac
+              sleep 3
+            done
             case "$code" in
               2*|3*) printf '  ok   %s  %s\n' "$code" "$u" ;;
               *)     printf '  FAIL %s  %s\n' "$code" "$u"; fail=1 ;;
