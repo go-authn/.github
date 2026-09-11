@@ -29,6 +29,9 @@ password field, because what proves somebody is not one thing — an LDAP bind
 cannot authenticate an SMB session, and neither can a bcrypt. `oidc` verifies a
 token into an identity for the things that speak that instead, and `authnd`
 serves the whole lot back out over LDAP, because almost everything speaks LDAP.
+`krb5` is the acceptor half of Kerberos for the services that speak that: an
+AP-REQ verified against a keytab, answered with the AP-REP that proves the
+service is genuine — no KDC, no tickets issued.
 
 Everything here is pure Go with `CGO_ENABLED=0`. Nothing that reaches a device
 is platform-specific: a `Transport` moves 64-byte reports to and from an
@@ -49,6 +52,7 @@ because since 1903 it will not let a normal program open a FIDO device at all
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-totp.png" width="36"> | [`totp`](https://github.com/go-authn/totp) | Time-based one-time passwords (RFC 6238), the replay guard the RFC requires, and an `mfa.Factor`. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-directory.png" width="36"> | [`directory`](https://github.com/go-authn/directory) | Who somebody is and what proves them, over a database (`sqldir`), an LDAP server (`ldapdir`) or a file (`hcldir`). |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-oidc.png" width="36"> | [`oidc`](https://github.com/go-authn/oidc) | An OpenID Connect token verified into an identity: discovery, JWKS, and the refusals that matter. |
+| <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-krb5.png" width="36"> | [`krb5`](https://github.com/go-authn/krb5) | The acceptor half of Kerberos: an AP-REQ verified against a keytab, and the AP-REP `gokrb5` will not build. No KDC. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-authnd.png" width="36"> | [`authnd`](https://github.com/go-authn/authnd) | A command, not a library: an LDAP server for people who are somewhere else, with a second factor at the bind. |
 
 ## Why it exists
