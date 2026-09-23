@@ -29,9 +29,19 @@ password field, because what proves somebody is not one thing — an LDAP bind
 cannot authenticate an SMB session, and neither can a bcrypt. `oidc` verifies a
 token into an identity for the things that speak that instead, and `authnd`
 serves the whole lot back out over LDAP, because almost everything speaks LDAP.
-`krb5` is the acceptor half of Kerberos for the services that speak that: an
+`krb5` is the **accepting** half of Kerberos, for the services that speak it: an
 AP-REQ verified against a keytab, answered with the AP-REP that proves the
-service is genuine — no KDC, no tickets issued.
+service is genuine — and then messages signed and sealed under the session key,
+which is what `sec=krb5`, `krb5i` and `krb5p` are. It issues nothing; `kdc` is
+the **issuing** half, AS-REQ and TGS-REQ backed by the same `directory`, judged
+by MIT's own `kinit`. Two halves, two repositories, so a service that only
+accepts tickets does not link a KDC.
+
+That acceptor is in use outside this organisation:
+[`go-fileshare/fileshare`](https://github.com/go-fileshare/fileshare) serves a
+disk image over NFS with `sec=krb5` through it — which is what the per-message
+half is for. NFSv3's `AUTH_UNIX` is a claim the client makes about itself; a
+ticket is not.
 
 Everything here is pure Go with `CGO_ENABLED=0`. Nothing that reaches a device
 is platform-specific: a `Transport` moves 64-byte reports to and from an
