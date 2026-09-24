@@ -37,11 +37,36 @@ the **issuing** half, AS-REQ and TGS-REQ backed by the same `directory`, judged
 by MIT's own `kinit`. Two halves, two repositories, so a service that only
 accepts tickets does not link a KDC.
 
-That acceptor is in use outside this organisation:
-[`go-fileshare/fileshare`](https://github.com/go-fileshare/fileshare) serves a
-disk image over NFS with `sec=krb5` through it — which is what the per-message
-half is for. NFSv3's `AUTH_UNIX` is a claim the client makes about itself; a
-ticket is not.
+## What proves somebody is not one thing, and now there is a table of it
+
+That sentence used to be an assertion here. It is a measurement now.
+[`go-fileshare/fileshare`](https://github.com/go-fileshare/fileshare) serves one
+set of people over five protocols out of one `directory`, and asks a different
+question of each person for each one — `canServeUser` in its `protocol.go`:
+
+| Serving a person over | needs, from their directory entry |
+|---|---|
+| **SMB** | `NTHash`. NTLMv2 works from the password or its `MD4(UTF16LE(password))`, and nothing else will do. |
+| **S3** | `Password` — the secret itself. SigV4 proves possession by computing an HMAC **from** it. |
+| **WebDAV** | `Verifier` **or** `Password`. A source that can only *check* a password is enough here. |
+| **SFTP** | `PublicKeys`, or a trusted user CA that makes everybody able to present a certificate. |
+| **NFS** | a Kerberos ticket: `sec=krb5` through `krb5` and a keytab, not a directory credential at all. |
+
+SMB and S3 are the pair worth reading twice. They are neighbours, not copies: an
+identity holding only an NT hash serves SMB and **cannot** serve S3, because an
+HMAC cannot be computed from an MD4. And a directory that can only answer *yes*
+to a password serves WebDAV and answers neither.
+
+That is what `directory` carries what *proves* somebody for, instead of a
+password field. The same shape decides who a realm can issue to: only a source
+holding the password can back a KDC, because pre-authentication is decrypted and
+a verifier answers a yes rather than a key.
+
+`fileshare` links three of these — `directory`, `krb5` and `oidc`, the last for
+the bearer tokens its HTTP surface accepts instead of a directory.
+[`go-filesystems/nfs`](https://github.com/go-filesystems/nfs) links `krb5`
+directly too, one layer below. NFSv3's `AUTH_UNIX` is a claim the client makes
+about itself; a ticket is not.
 
 Everything here is pure Go with `CGO_ENABLED=0`. Nothing that reaches a device
 is platform-specific: a `Transport` moves 64-byte reports to and from an
@@ -51,6 +76,20 @@ transports are [`go-macos/fido`](https://github.com/go-macos/fido) and
 because since 1903 it will not let a normal program open a FIDO device at all
 ([`go-mswin/webauthn`](https://github.com/go-mswin/webauthn) goes through
 `webauthn.dll` instead).
+
+Above those sit three repositories that hand a platform's own authentication to
+`mfa` as factors, one per system, each satisfying `mfa.Factor` so a policy
+written here never learns which one it got:
+
+| | gives `mfa` |
+|---|---|
+| [`go-macos/factors`](https://github.com/go-macos/factors) | `TouchID`, `DeviceOwner`, `SecurityKey`, `VerifiedSecurityKey` |
+| [`go-gnulinux/factors`](https://github.com/go-gnulinux/factors) | `SecurityKey`, `VerifiedSecurityKey` over hidraw |
+| [`go-mswin/factors`](https://github.com/go-mswin/factors) | `WindowsHello`, `SecurityKey`, `VerifiedSecurityKey` — through `webauthn.dll`, since a Transport is not available to it |
+
+Touch ID and Windows Hello are the reason `mfa` counts factors by KIND rather
+than by name: neither is FIDO, and a policy asking for two distinct kinds is
+satisfied by one of them plus a key, and not by two keys.
 
 ## Repos
 
