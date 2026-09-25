@@ -134,6 +134,14 @@ underneath, an independent implementation, and it is read in CI by **OpenLDAP's
 own `ldapsearch`**, which knows nothing about any of this: a fixture built from
 one reading of a protocol can only ever confirm that reading.
 
+⛔ **It stays `glauth/ldap` on purpose**, now that this organisation has an LDAP
+server of its own. `ldapdir` is a *client*. Testing it against a server from
+the same hands makes judge and subject one thing, and a shared misreading of
+RFC 4511 would pass both ways — which is exactly how a substring filter defect
+survived years in that library: its own client encoded the filter with the same
+mistake, so the round trip looked clean. The outside implementation is the
+measurement, not a leftover.
+
 ## Links
 
 - 🌐 Landing page — <https://go-authn.github.io>
