@@ -28,7 +28,9 @@ model over all three, and it carries what *proves* each person rather than a
 password field, because what proves somebody is not one thing — an LDAP bind
 cannot authenticate an SMB session, and neither can a bcrypt. `oidc` verifies a
 token into an identity for the things that speak that instead, and `authnd`
-serves the whole lot back out over LDAP, because almost everything speaks LDAP.
+serves the whole lot back out over LDAP, because almost everything speaks LDAP
+— on `ldap`, the protocol half, written here rather than borrowed after six
+defects turned up in the parts of a borrowed one this org actually used.
 `krb5` is the **accepting** half of Kerberos, for the services that speak it: an
 AP-REQ verified against a keytab, answered with the AP-REP that proves the
 service is genuine — and then messages signed and sealed under the session key,
@@ -103,6 +105,7 @@ satisfied by one of them plus a key, and not by two keys.
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-oidc.png" width="36"> | [`oidc`](https://github.com/go-authn/oidc) | An OpenID Connect token verified into an identity: discovery, JWKS, and the refusals that matter. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-krb5.png" width="36"> | [`krb5`](https://github.com/go-authn/krb5) | The ACCEPTING half of Kerberos: an AP-REQ verified against a keytab, and the AP-REP `gokrb5` will not build. Signs and seals, so `sec=krb5`, `krb5i` and `krb5p`. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-kdc.png" width="36"> | [`kdc`](https://github.com/go-authn/kdc) | The ISSUING half: AS-REQ and TGS-REQ over UDP and TCP, backed by a `directory`. Judged by MIT's own `kinit`, with no MIT KDC in the loop. |
+| <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-ldap.png" width="36"> | [`ldap`](https://github.com/go-authn/ldap) | The LDAP protocol half `authnd` runs: the wire, the filter, the scope, the root DSE. One filter tree feeds matching, the string form and the bytes, so the three cannot drift and answer a BROADER question than the one asked. A library, not a daemon. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-authnd.png" width="36"> | [`authnd`](https://github.com/go-authn/authnd) | A command, not a library: an LDAP server for people who are somewhere else, with a second factor at the bind — and, with a `kerberos` block, a KDC for the same people. |
 
 ## Why it exists
