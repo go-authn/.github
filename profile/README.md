@@ -66,6 +66,10 @@ a verifier answers a yes rather than a key.
 
 `fileshare` links three of these — `directory`, `krb5` and `oidc`, the last for
 the bearer tokens its HTTP surface accepts instead of a directory.
+Those tokens can come from `bridge`, which turns a login at a person's own
+university -- through `saml` and a federation such as RENATER -- into an OpenID
+Connect token, and into what SFTP, SMB and S3 accept instead: an SSH
+certificate, an application password.
 [`go-filesystems/nfs`](https://github.com/go-filesystems/nfs) links `krb5`
 directly too, one layer below. NFSv3's `AUTH_UNIX` is a claim the client makes
 about itself; a ticket is not.
@@ -103,6 +107,8 @@ satisfied by one of them plus a key, and not by two keys.
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-totp.png" width="36"> | [`totp`](https://github.com/go-authn/totp) | Time-based one-time passwords (RFC 6238), the replay guard the RFC requires, and an `mfa.Factor`. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-directory.png" width="36"> | [`directory`](https://github.com/go-authn/directory) | Who somebody is and what proves them, over a database (`sqldir`), an LDAP server (`ldapdir`), or the configuration file itself (`hcldir`, which also carries the `users` block naming the other two). |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-oidc.png" width="36"> | [`oidc`](https://github.com/go-authn/oidc) | An OpenID Connect token verified into an identity: discovery, JWKS, and the refusals that matter. |
+| <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-saml.png" width="36"> | [`saml`](https://github.com/go-authn/saml) | A SAML 2.0 service provider in a federation such as RENATER or eduGAIN: metadata verified against a pinned certificate, exactly one signed assertion, and scoped identifiers only in the scopes the federation grants. Judged by RENATER's own signed metadata and by `xmlsec1`. |
+| <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-bridge.png" width="36"> | [`bridge`](https://github.com/go-authn/bridge) | An OpenID Connect provider in front of a SAML federation, so that anything speaking OIDC reaches every university in it. Device grant, SSH certificates and application passwords for the protocols that cannot carry a token, and what OpenPubkey needs of a provider. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-krb5.png" width="36"> | [`krb5`](https://github.com/go-authn/krb5) | The ACCEPTING half of Kerberos: an AP-REQ verified against a keytab, and the AP-REP `gokrb5` will not build. Signs and seals, so `sec=krb5`, `krb5i` and `krb5p`. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-kdc.png" width="36"> | [`kdc`](https://github.com/go-authn/kdc) | The ISSUING half: AS-REQ and TGS-REQ over UDP and TCP, backed by a `directory`. Judged by MIT's own `kinit`, with no MIT KDC in the loop. |
 | <img src="https://raw.githubusercontent.com/go-authn/brand/main/avatar/go-authn-ldap.png" width="36"> | [`ldap`](https://github.com/go-authn/ldap) | The LDAP protocol half `authnd` runs: the wire, the filter, the scope, the root DSE. One filter tree feeds matching, the string form and the bytes, so the three cannot drift and answer a BROADER question than the one asked. A library, not a daemon. |
