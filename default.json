@@ -56,6 +56,15 @@
     },
     {
       "description": [
+        "Go module updates are never auto-merged, whatever they are labelled. postUpdateOptions gomodTidy re-resolves the module graph after Renovate's own edit, and Go's minimal version selection then raises OTHER modules, indirect ones included, to the versions the updated one requires: a branch Renovate calls a patch or a minor can carry a v0 minor bump that Renovate never listed (go-llmflow/gateway#131: go-ndarray v0.18.0 to v0.28.0, go-gfx v0.36.1 to v0.37.0, go-images/jpeg2000 v0.13.8 to v0.14.0, under a title that named none of them). Automerge is decided from what Renovate saw, not from what tidy wrote, so the only rule that cannot be defeated is to merge a gomod branch by hand, after reading its go.mod diff. GitHub Actions and the other managers keep the automerge of the group above."
+      ],
+      "matchManagers": [
+        "gomod"
+      ],
+      "automerge": false
+    },
+    {
+      "description": [
         "Never auto-merge the Go toolchain, and never let it ride in somebody else's group. A rule that says automerge:false for one dependency is defeated by grouping, because Renovate decides automerge per BRANCH: go 1.27.0 rode into seven repositories inside a branch called renovate/github-actions, whose other dependency was actions/setup-go. Ungrouped, it gets a branch of its own and this setting governs it. It matters because go1.27.0 miscompiles on loong64 (golang/go#81000, bisected on real hardware to 3fdac6780b): go-gfx/gfx fails that lane and stayed open only because the lane failed, which is the CI gate holding rather than this rule. A repository without such a lane sees nothing."
       ],
       "matchManagers": [
